@@ -54,6 +54,8 @@ Qualquer parâmetro fora da lista acima (`type`, `path`, `external`, `tokenAA`, 
 
 Exemplos: `affiliateId`, `redirect-feature`, `redirect`/`action`, `utm_*`, `q`.
 
+Na UI (`index.html`), os seis mais usados (`affiliateId`, `utm_source`, `utm_medium`, `utm_campaign`, `utm_id`, `utm_term`) aparecem como campos fixos com toggle na seção 3 — liga só o que for preencher. Qualquer outro nome de parâmetro vai em "+ adicionar parâmetro".
+
 ## Regra de concatenação de `path`
 
 ```
