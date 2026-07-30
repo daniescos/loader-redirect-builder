@@ -4,6 +4,14 @@ Ferramenta interna para gerar links `LoaderScreenGenericRedirect` — a tela inv
 
 Site estático, single-file (`index.html`), 100% client-side — sem backend, sem build, sem custo de hospedagem.
 
+## Acesso
+
+Ferramenta restrita ao time — protegida por **Cloudflare Access** (login por código enviado ao e-mail, sem senha).
+
+- Link: `https://loader-redirect-builder.pages.dev` (confirmar nome exato do projeto após criação no Cloudflare).
+- Se seu e-mail ainda não tem acesso, a própria tela de login mostra a opção de **solicitar acesso** — digite seu e-mail corporativo e aguarde aprovação.
+- Aprovação: **Daniel Escosteguy** (`daniel.escosteguy.3@globalhitss.com.br`).
+
 ## O que a ferramenta faz
 
 - Monta o **deep link nativo** (`minhaclaro://LoaderScreenGenericRedirect?...`), usado dentro do app (push, banners internos).
@@ -37,40 +45,24 @@ O painel à direita atualiza os dois links e a URL final a cada mudança, com bo
 
 Regras completas (URL base de cada `type`, parâmetros auto-injetados, concatenação de `path`, etc.) estão em [`REGRAS.md`](./REGRAS.md), resumo do guia oficial `MA-Redirecionamento Logado Para Sites Externos-300726-123459.pdf` (nesta mesma pasta). Ao editar `index.html`, confira `REGRAS.md` pra manter os dois consistentes.
 
-## Deploy no GitHub Pages (gratuito)
+## Deploy (Cloudflare Pages + Access)
 
-1. Crie um repositório novo no GitHub (pode ser público ou privado — Pages funciona nos dois, mas repo privado exige plano pago pra Pages público; se for uso interno da equipe, use **público** e compartilhe só a URL).
-2. Neste diretório, rode:
-   ```bash
-   git init
-   git add .
-   git commit -m "Loader redirect link builder"
-   git branch -M main
-   git remote add origin https://github.com/SEU_USUARIO/loader-redirect-builder.git
-   git push -u origin main
-   ```
-3. No GitHub: **Settings → Pages → Source → Deploy from a branch → branch `main` / folder `/ (root)`** → Save.
-4. Em ~1 minuto o site fica disponível em:
-   `https://SEU_USUARIO.github.io/loader-redirect-builder/`
+Publicado no **Cloudflare Pages**, deploy automático a cada `git push` na `main` via GitHub Action (`.github/workflows/deploy.yml`). Setup inicial (uma vez só):
 
-## Atualizações futuras
+1. Criar conta gratuita em https://dash.cloudflare.com/sign-up.
+2. **Workers & Pages → Create → Pages** → criar projeto `loader-redirect-builder` (método "Direct Upload").
+3. **Meu Perfil → API Tokens** → criar token com template "Edit Cloudflare Pages"; copiar também o **Account ID** (barra lateral do dashboard).
+4. No repositório GitHub, em **Settings → Secrets and variables → Actions**, adicionar:
+   - `CLOUDFLARE_API_TOKEN`
+   - `CLOUDFLARE_ACCOUNT_ID`
+5. Dar `git push` — a Action publica em `https://loader-redirect-builder.pages.dev`.
+6. Ativar **Zero Trust** no dashboard (escolher um nome de time — gratuito até 50 usuários).
+7. **Access → Applications → Add an application → Self-hosted**, apontando pro domínio `.pages.dev` do projeto.
+8. Criar política: Action = **Allow**, e-mails permitidos (começa com o e-mail do Daniel, cresce conforme aprova gente).
+9. Habilitar **solicitação de acesso (self-serve)** nas configurações da aplicação — quem não tem permissão vê um formulário de e-mail + motivo; Daniel recebe e aprova no painel (Access → Applications → pedidos pendentes).
+10. Identidade padrão: **One-time PIN** (código por e-mail) — já vem habilitado, sem precisar configurar SSO.
 
-Qualquer alteração no `index.html`, basta:
-```bash
-git add . && git commit -m "ajuste X" && git push
-```
-O Pages atualiza automaticamente em segundos.
-
-## Alternativas de hospedagem gratuita (caso prefira)
-
-| Opção | Vantagem |
-|---|---|
-| GitHub Pages | Já integrado ao seu fluxo de git, zero config extra |
-| Vercel | Deploy automático a cada push, domínio custom fácil |
-| Netlify | Drag-and-drop do arquivo direto no painel, sem git |
-| Cloudflare Pages | Rápido, ilimitado, bom se já usa Cloudflare |
-
-Todas essas opções aceitam o mesmo conteúdo da pasta (`index.html` + `assets/`) sem nenhuma alteração no código.
+Qualquer alteração no `index.html`/`README.md`, basta `git add . && git commit -m "ajuste X" && git push` — o Cloudflare Pages atualiza automaticamente.
 
 ## Notas técnicas
 
