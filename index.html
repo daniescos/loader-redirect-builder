@@ -476,12 +476,12 @@ function build(){
     alerts.push({type:"warn", msg:`type="${type}" injeta automaticamente o parâmetro "${cfg.inject}" com o token do usuário — seu valor manual foi ignorado (o app sempre sobrescreve).`});
   }
 
-  // build deep link query string (only non-default values, mirroring doc examples)
+  // build deep link query string (tokenAA always explicit; tokenPing/contractSession only when non-default)
   const dlParams = [`type=${type}`];
   if(path) dlParams.push(`path=${path}`);
   if(external) dlParams.push(`external=true`);
   if(!external){
-    if(!tokenAA) dlParams.push(`tokenAA=false`);
+    dlParams.push(`tokenAA=${tokenAA}`);
     if(tokenPing) dlParams.push(`tokenPing=true`);
     if(contractSession) dlParams.push(`contractSession=true`);
   }
