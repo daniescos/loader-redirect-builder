@@ -19,7 +19,7 @@ Link compartilhado só internamente com o time — sem controle de acesso técni
 
 A UI tem 3 seções de entrada + o painel de saída:
 
-**1 · Destino** — escolhe o `type` (domínio/serviço de destino) e opcionalmente um `path`, concatenado direto após a URL base do `type`.
+**1 · Destino** — escolhe o `type` (domínio/serviço de destino), opcionalmente um `path` (concatenado direto após a URL base do `type`) e o `campaign` (obrigatório só quando `type=claro_store`, código da campanha fornecido pela equipe responsável).
 
 **2 · Comportamento** — toggles para `external` (WebView vs navegador externo), `tokenAA`, `tokenPing` e `contractSession` (cookies de sessão injetados na WebView; sem efeito quando `external=true`).
 
@@ -39,7 +39,7 @@ O painel à direita atualiza os dois links e a URL final a cada mudança, com bo
 | `planos_celular` | Não |
 | `claro_site` | Não |
 
-Regras completas (URL base de cada `type`, parâmetros auto-injetados, concatenação de `path`, etc.) estão em [`REGRAS.md`](./REGRAS.md), resumo do guia oficial `MA-Redirecionamento Logado Para Sites Externos-300726-123459.pdf` (nesta mesma pasta). Ao editar `index.html`, confira `REGRAS.md` pra manter os dois consistentes.
+Regras completas (URL base de cada `type`, parâmetros auto-injetados, concatenação de `path`, fluxo de campanha externa pra Claro Store, etc.) estão em [`REGRAS.md`](./REGRAS.md), resumo dos guias oficiais (geral + campanha externa, nesta mesma pasta). Ao editar `index.html`, confira `REGRAS.md` pra manter os dois consistentes.
 
 ## Deploy no GitHub Pages (gratuito)
 

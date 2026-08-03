@@ -1,6 +1,6 @@
 # Regras — LoaderScreenGenericRedirect
 
-Fonte: `MA-Redirecionamento Logado Para Sites Externos-300726-123459.pdf` (guia oficial, mesma pasta). Este arquivo é o resumo em markdown usado como referência pra manter o `index.html` consistente.
+Fonte: `MA-Redirecionamento Logado Para Sites Externos-300726-123459.pdf` (guia geral original — não está mais na pasta, mas moldou as regras abaixo) + `MA-Redirecionamento Logado via Campanhas Externas-030826-142938.pdf` (guia específico do fluxo de campanha externa pra Claro Store, mesma pasta). Este arquivo é o resumo em markdown usado como referência pra manter o `index.html` consistente.
 
 ## O que é
 
@@ -75,6 +75,18 @@ Sobrescrevem qualquer valor manual com mesmo nome — não enviar manualmente:
 |---|---|
 | `flex` | `token=<token do usuário>` |
 | `claro_tv_mais` | `accessTokenId=<token do usuário>` |
+
+## Fluxo específico: campanha externa pra Claro Store
+
+Guia à parte (`MA-Redirecionamento Logado via Campanhas Externas-030826-142938.pdf`) pra links de campanha (SMS, e-mail, WhatsApp, mídia paga) que levam o usuário logado direto pra Claro Store. É o mesmo mecanismo `LoaderScreenGenericRedirect`, só com um uso mais restrito:
+
+- `type` sempre `claro_store` — fixo, não mexe.
+- `external` e `tokenAA` usam os defaults padrão (`false` e `true`) — na grande maioria das campanhas não precisa alterar nada além do `campaign`.
+- `campaign` — **obrigatório** nesse fluxo. Código da campanha, gerado/validado pela equipe responsável (não é algo que o time de negócio define sozinho). Mecanicamente é um parâmetro extra normal (repassado direto, sem transformação), só que aqui é obrigatório em vez de opcional. Na UI (`index.html`), tem campo dedicado na seção 1, com validação: erro se `type=claro_store` e `campaign` vazio.
+- Como é redirecionamento **logado**: o link só funciona se o usuário já estiver autenticado no app no momento em que abre o link. Sem login, cai na tela de erro genérica — mesmo com a URL correta.
+- Regra de `path` (sem `/` inicial) se aplica igual ao resto do guia.
+
+Checklist de teste pra link novo: gerar o link com o `campaign` correto → enviar pro próprio dispositivo (app precisa estar instalado e logado) → abrir → confirmar que abre o app e redireciona pra Claro Store na campanha certa.
 
 ## Checklist pra criar URL nova
 

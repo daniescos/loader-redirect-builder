@@ -267,6 +267,12 @@
           <input type="text" id="path" placeholder="ex: minhas-assinaturas">
           <div class="hint" id="pathHint">Concatenado direto após a URL base — não comece com "/".</div>
         </div>
+
+        <div class="field">
+          <label>campaign <span id="campaignBadge"></span></label>
+          <input type="text" id="campaign" placeholder="ex: BLACKFRIDAY24">
+          <div class="hint" id="campaignHint">Código da campanha, obrigatório só pra type=claro_store — fornecido pela equipe responsável.</div>
+        </div>
       </div>
 
       <div class="card">
@@ -407,7 +413,7 @@ $("addExtra").addEventListener("click", ()=>{
   renderExtraRows();
 });
 
-const RESERVED = ["type","path","external","tokenaa","tokenping","contractsession",
+const RESERVED = ["type","path","external","tokenaa","tokenping","contractsession","campaign",
   "affiliateid","utm_source","utm_medium","utm_campaign","utm_id","utm_term"];
 
 function build(){
@@ -418,6 +424,7 @@ function build(){
   const tokenAA = $("tokenAA").checked;
   const tokenPing = $("tokenPing").checked;
   const contractSession = $("contractSession").checked;
+  const campaign = $("campaign").value.trim();
 
   const alerts = [];
 
@@ -428,6 +435,14 @@ function build(){
   $("typeHint").textContent = cfg.base
     ? `URL base: ${cfg.base}`
     : `URL base gerada dinamicamente pelo app (marketplace) — não é possível prever a URL final aqui.`;
+
+  // campaign badge + validation (obrigatório só pro fluxo type=claro_store)
+  $("campaignBadge").innerHTML = type === "claro_store"
+    ? `<span class="badge login">obrigatório</span>`
+    : `<span class="badge">opcional</span>`;
+  if(type === "claro_store" && !campaign){
+    alerts.push({type:"error", msg:`type="claro_store" exige o parâmetro campaign (código da campanha, fornecido pela equipe responsável) nesse fluxo de campanha externa.`});
+  }
 
   // disable token toggles when external=true (they have no effect)
   ["tokenAA","tokenPing","contractSession"].forEach(id=>{
@@ -485,6 +500,7 @@ function build(){
     dlParams.push(`tokenPing=${tokenPing}`);
     dlParams.push(`contractSession=${contractSession}`);
   }
+  if(campaign) dlParams.push(`campaign=${encodeURIComponent(campaign)}`);
   queryParts.forEach(q => dlParams.push(q));
 
   const queryStr = dlParams.join("&");
@@ -520,7 +536,7 @@ function build(){
 }
 
 // wire events
-["type","path","external","tokenAA","tokenPing","contractSession"].forEach(id=>{
+["type","path","external","tokenAA","tokenPing","contractSession","campaign"].forEach(id=>{
   $(id).addEventListener("input", build);
   $(id).addEventListener("change", build);
 });
