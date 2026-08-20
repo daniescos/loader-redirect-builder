@@ -254,6 +254,14 @@
   <div class="grid">
     <div>
       <div class="card">
+        <h2>Colar link de campanha <span class="badge">opcional</span></h2>
+        <div class="field">
+          <input type="text" id="pasteUrl" placeholder="cole aqui a URL de campanha original (https://...)">
+          <div class="hint" id="pasteHint">Atalho pra preencher type/path/parâmetros extras abaixo automaticamente. tokenPing, contractSession e campaign continuam manuais — a URL colada não traz essas informações.</div>
+        </div>
+      </div>
+
+      <div class="card">
         <h2>1 · Destino</h2>
 
         <div class="field">
@@ -328,13 +336,13 @@
 
 <script>
 const TYPES = {
-  residencial:   { base: "https://minhaclaroresidencial.claro.com.br/", login: "Token Ping", inject: null },
-  flex:          { base: "https://flex.claro.com.br/",                  login: "Token AA/Flex", inject: "token" },
-  minha_claro:   { base: "https://minhaclaro.claro.com.br/",             login: "Token de autenticação", inject: null },
-  claro_tv_mais: { base: "https://www.clarotvmais.com.br/",              login: "Token Ping", inject: "accessTokenId" },
-  claro_store:   { base: null,                                          login: "Usuário autenticado (login por MSISDN)", inject: null },
-  planos_celular:{ base: "https://planoscelular.claro.com.br/",         login: null, inject: null },
-  claro_site:    { base: "https://claro.com.br/",                       login: null, inject: null },
+  residencial:   { base: "https://minhaclaroresidencial.claro.com.br/", login: "Token Ping", inject: null, fixedParams: { origin: "minhanetapp" } },
+  flex:          { base: "https://flex.claro.com.br/",                  login: "Token AA/Flex", inject: "token", fixedParams: null },
+  minha_claro:   { base: "https://minhaclaro.claro.com.br/",             login: "Token de autenticação", inject: null, fixedParams: null },
+  claro_tv_mais: { base: "https://www.clarotvmais.com.br/",              login: "Token Ping", inject: "accessTokenId", fixedParams: null },
+  claro_store:   { base: null,                                          login: "Usuário autenticado (login por MSISDN)", inject: null, fixedParams: null },
+  planos_celular:{ base: "https://planoscelular.claro.com.br/",         login: null, inject: null, fixedParams: null },
+  claro_site:    { base: "https://claro.com.br/",                       login: null, inject: null, fixedParams: null },
 };
 
 const $ = id => document.getElementById(id);
@@ -413,7 +421,53 @@ $("addExtra").addEventListener("click", ()=>{
   renderExtraRows();
 });
 
-const RESERVED = ["type","path","external","tokenaa","tokenping","contractsession","campaign",
+function parsePastedUrl(raw){
+  let u;
+  try { u = new URL(raw.trim()); } catch(e){ return null; }
+  const matchedType = Object.keys(TYPES).find(t => TYPES[t].base && (u.origin + "/") === TYPES[t].base);
+  const path = u.pathname.replace(/^\/+/, "");
+  const params = [...u.searchParams.entries()];
+  return { type: matchedType || null, path, params };
+}
+
+$("pasteUrl").addEventListener("input", e=>{
+  const raw = e.target.value.trim();
+  const hint = $("pasteHint");
+  if(!raw){
+    hint.textContent = "Atalho pra preencher type/path/parâmetros extras abaixo automaticamente. tokenPing, contractSession e campaign continuam manuais — a URL colada não traz essas informações.";
+    return;
+  }
+  const parsed = parsePastedUrl(raw);
+  if(!parsed){
+    hint.textContent = "Link inválido — preencha os campos abaixo manualmente.";
+    return;
+  }
+  if(!parsed.type){
+    hint.textContent = "Domínio não reconhecido automaticamente (ex: claro_store não tem URL base fixa) — selecione o type manualmente abaixo. path e parâmetros extras foram preenchidos.";
+  } else {
+    typeSelect.value = parsed.type;
+    hint.textContent = `Reconhecido: type=${parsed.type}. Confira o comportamento (seção 2) e campaign (se aplicável) antes de usar.`;
+  }
+  $("path").value = parsed.path;
+
+  PRESET_KEYS.forEach(k=>{ presets[k].enabled = false; presets[k].val = ""; });
+  extras = [];
+  parsed.params.forEach(([k,v])=>{
+    if(PRESET_KEYS.includes(k)){
+      presets[k].enabled = true;
+      presets[k].val = v;
+    } else if(!RESERVED.includes(k.toLowerCase())){
+      extras.push({key:k, val:v});
+    }
+  });
+  if(extras.length===0) extras.push({key:"",val:""});
+
+  renderPresetRows();
+  renderExtraRows();
+  build();
+});
+
+const RESERVED = ["type","path","external","tokenaa","tokenping","contractsession","campaign","origin",
   "affiliateid","utm_source","utm_medium","utm_campaign","utm_id","utm_term"];
 
 function build(){
@@ -491,14 +545,17 @@ function build(){
     alerts.push({type:"warn", msg:`type="${type}" injeta automaticamente o parâmetro "${cfg.inject}" com o token do usuário — seu valor manual foi ignorado (o app sempre sobrescreve).`});
   }
 
-  // build deep link query string (tokens always explicit)
+  // build deep link query string (tokenPing/contractSession always explicit, tokenAA only when non-default)
   const dlParams = [`type=${type}`];
   if(path) dlParams.push(`path=${path}`);
   if(external) dlParams.push(`external=true`);
   if(!external){
-    dlParams.push(`tokenAA=${tokenAA}`);
+    if(!tokenAA) dlParams.push(`tokenAA=false`);
     dlParams.push(`tokenPing=${tokenPing}`);
     dlParams.push(`contractSession=${contractSession}`);
+    if(cfg.fixedParams){
+      Object.entries(cfg.fixedParams).forEach(([k,v]) => dlParams.push(`${k}=${v}`));
+    }
   }
   if(campaign) dlParams.push(`campaign=${encodeURIComponent(campaign)}`);
   queryParts.forEach(q => dlParams.push(q));
