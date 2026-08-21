@@ -421,10 +421,18 @@ $("addExtra").addEventListener("click", ()=>{
   renderExtraRows();
 });
 
+function normalizeHost(h){
+  return h.toLowerCase().replace(/^www\./, "");
+}
+
 function parsePastedUrl(raw){
   let u;
   try { u = new URL(raw.trim()); } catch(e){ return null; }
-  const matchedType = Object.keys(TYPES).find(t => TYPES[t].base && (u.origin + "/") === TYPES[t].base);
+  const host = normalizeHost(u.hostname);
+  const matchedType = Object.keys(TYPES).find(t => {
+    if(!TYPES[t].base) return false;
+    return host === normalizeHost(new URL(TYPES[t].base).hostname);
+  });
   const path = u.pathname.replace(/^\/+/, "");
   const params = [...u.searchParams.entries()];
   return { type: matchedType || null, path, params };
