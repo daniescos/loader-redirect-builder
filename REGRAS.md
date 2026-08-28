@@ -21,6 +21,8 @@ Regra não seguida → tela de erro genérica ("Não conseguimos concluir o seu 
 
 Mesmos parâmetros e regras nos dois — só muda o envelope. No smart link o `?` interno **não** é escapado (não vira `%3F`).
 
+Scheme `minhaclaro://` deve ser sempre minúsculo — diferente do valor de `type` (case-insensitive), o esquema da URI é case-sensitive no app (`Minhaclaro://` com M maiúsculo dá erro). A ferramenta já monta sempre em minúsculo.
+
 ## Parâmetros de configuração
 
 | Parâmetro | Tipo | Obrigatório | Padrão | Descrição |
@@ -54,7 +56,7 @@ Na ferramenta (`index.html`), `origin=minhanetapp` é injetado automaticamente (
 | `claro_tv_mais` | `https://www.clarotvmais.com.br/` | Sim — Token Ping |
 | `claro_store` | URL de marketplace gerada dinamicamente (já vem com `?origin=MINHA_CLARO_MOVEL`) | Sim (login por MSISDN) |
 | `planos_celular` | `https://planoscelular.claro.com.br/` | Não |
-| `claro_site` | `https://claro.com.br/` | Não |
+| `claro_site` | `https://claro.com.br/` | Não — mas hoje só usado pro fluxo de campanha externa (ver seção abaixo); deeplink real sempre sai com `type=claro_store` |
 
 Únicos 7 valores válidos. Qualquer outro (erro de grafia, ou `type` ausente) → tela de erro. Para os que precisam login: sem token no momento do redirect, também cai em erro mesmo com URL correta.
 
@@ -97,6 +99,7 @@ Guia à parte (`MA-Redirecionamento Logado via Campanhas Externas-030826-142938.
 - `campaign` — **obrigatório** nesse fluxo. Código da campanha, gerado/validado pela equipe responsável (não é algo que o time de negócio define sozinho). Mecanicamente é um parâmetro extra normal (repassado direto, sem transformação), só que aqui é obrigatório em vez de opcional. Na UI (`index.html`), tem campo dedicado na seção 1, com validação: erro se `type=claro_store` e `campaign` vazio.
 - Como é redirecionamento **logado**: o link só funciona se o usuário já estiver autenticado no app no momento em que abre o link. Sem login, cai na tela de erro genérica — mesmo com a URL correta.
 - Regra de `path` (sem `/` inicial) se aplica igual ao resto do guia.
+- `claro_site` (detectado automaticamente ao colar link `claro.com.br/...` no campo "colar link de campanha") é tratado como o mesmo fluxo: na montagem, `type` sai forçado pra `claro_store`, `external=false` fixo, e `path`/`tokenAA`/`tokenPing`/`contractSession`/parâmetros extras são ignorados — só `campaign` varia. Campo `campaign` obrigatório igual ao `claro_store`.
 
 Checklist de teste pra link novo: gerar o link com o `campaign` correto → enviar pro próprio dispositivo (app precisa estar instalado e logado) → abrir → confirmar que abre o app e redireciona pra Claro Store na campanha certa.
 

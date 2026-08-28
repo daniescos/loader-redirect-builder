@@ -488,31 +488,33 @@ function build(){
   const contractSession = $("contractSession").checked;
   const campaign = $("campaign").value.trim();
 
+  // claro_site (link colado claro.com.br) é roteado pro mesmo fluxo fixo do claro_store
+  const campaignOnlyFlow = type === "claro_store" || type === "claro_site";
+
   const alerts = [];
 
   // login badge + type hint
   $("loginBadge").innerHTML = cfg.login
     ? `<span class="badge login">requer login — ${cfg.login}</span>`
     : `<span class="badge open">não requer login</span>`;
-  $("typeHint").textContent = cfg.base
+  $("typeHint").textContent = (cfg.base && !campaignOnlyFlow)
     ? `URL base: ${cfg.base}`
-    : `URL base gerada dinamicamente pelo app (marketplace) — não é possível prever a URL final aqui.`;
+    : `URL base gerada dinamicamente pelo app (fluxo de campanha externa pra Claro Store) — não é possível prever a URL final aqui.`;
 
-  // campaign badge + validation (obrigatório só pro fluxo type=claro_store)
-  $("campaignBadge").innerHTML = type === "claro_store"
+  // campaign badge + validation (obrigatório pro fluxo de campanha externa: claro_store/claro_site)
+  $("campaignBadge").innerHTML = campaignOnlyFlow
     ? `<span class="badge login">obrigatório</span>`
     : `<span class="badge">opcional</span>`;
-  if(type === "claro_store" && !campaign){
-    alerts.push({type:"error", msg:`type="claro_store" exige o parâmetro campaign (código da campanha, fornecido pela equipe responsável) nesse fluxo de campanha externa.`});
+  if(campaignOnlyFlow && !campaign){
+    alerts.push({type:"error", msg:`type="${type}" exige o parâmetro campaign (código da campanha, fornecido pela equipe responsável) nesse fluxo de campanha externa.`});
   }
 
-  // disable token toggles when external=true (they have no effect)
+  // disable campos sem efeito nesse fluxo (external=true, ou fluxo fixo de campanha)
   ["tokenAA","tokenPing","contractSession"].forEach(id=>{
-    $(id).disabled = external;
+    $(id).disabled = external || campaignOnlyFlow;
   });
-  if(external){
-    $("path").parentElement; // no-op, keep structure
-  }
+  $("external").disabled = campaignOnlyFlow;
+  $("path").disabled = campaignOnlyFlow;
 
   // path validation
   let pathHint = 'Concatenado direto após a URL base — não comece com "/".';
@@ -554,19 +556,24 @@ function build(){
   }
 
   // build deep link query string (tokenPing/contractSession always explicit, tokenAA only when non-default)
-  const dlParams = [`type=${type}`];
-  if(path) dlParams.push(`path=${path}`);
-  if(external) dlParams.push(`external=true`);
-  if(!external){
-    if(!tokenAA) dlParams.push(`tokenAA=false`);
-    dlParams.push(`tokenPing=${tokenPing}`);
-    dlParams.push(`contractSession=${contractSession}`);
-    if(cfg.fixedParams){
-      Object.entries(cfg.fixedParams).forEach(([k,v]) => dlParams.push(`${k}=${v}`));
+  // fluxo de campanha externa (claro_store/claro_site): só type+external=false+campaign, nada mais
+  const dlParams = [`type=${campaignOnlyFlow ? "claro_store" : type}`];
+  if(campaignOnlyFlow){
+    dlParams.push(`external=false`);
+  } else {
+    if(path) dlParams.push(`path=${path}`);
+    if(external) dlParams.push(`external=true`);
+    if(!external){
+      if(!tokenAA) dlParams.push(`tokenAA=false`);
+      dlParams.push(`tokenPing=${tokenPing}`);
+      dlParams.push(`contractSession=${contractSession}`);
+      if(cfg.fixedParams){
+        Object.entries(cfg.fixedParams).forEach(([k,v]) => dlParams.push(`${k}=${v}`));
+      }
     }
   }
   if(campaign) dlParams.push(`campaign=${encodeURIComponent(campaign)}`);
-  queryParts.forEach(q => dlParams.push(q));
+  if(!campaignOnlyFlow) queryParts.forEach(q => dlParams.push(q));
 
   const queryStr = dlParams.join("&");
   const deepLink = `minhaclaro://LoaderScreenGenericRedirect?${queryStr}`;
@@ -576,7 +583,7 @@ function build(){
   $("smartOut").textContent = smartLink;
 
   // final preview
-  if(cfg.base){
+  if(cfg.base && !campaignOnlyFlow){
     let finalUrl = cfg.base + path;
     const extraQ = [];
     if(cfg.inject) extraQ.push(`${cfg.inject}=&lt;token do usuário&gt;`);
@@ -586,7 +593,7 @@ function build(){
     finalHtml += external ? `  <span style="color:var(--green)">→ abre no navegador externo</span>` : `  <span style="color:var(--muted)">→ abre em WebView</span>`;
     $("finalPreview").innerHTML = finalHtml;
   } else {
-    $("finalPreview").innerHTML = `URL final gerada dinamicamente pelo app no momento do redirecionamento (marketplace claro_store) — não previsível aqui.`;
+    $("finalPreview").innerHTML = `URL final gerada dinamicamente pelo app no momento do redirecionamento (fluxo de campanha externa claro_store/claro_site) — não previsível aqui.`;
   }
 
   // render alerts
