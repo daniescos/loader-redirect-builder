@@ -458,10 +458,13 @@ $("pasteUrl").addEventListener("input", e=>{
   }
   $("path").value = parsed.path;
 
+  $("campaign").value = "";
   PRESET_KEYS.forEach(k=>{ presets[k].enabled = false; presets[k].val = ""; });
   extras = [];
   parsed.params.forEach(([k,v])=>{
-    if(PRESET_KEYS.includes(k)){
+    if(k.toLowerCase() === "campaign"){
+      $("campaign").value = v;
+    } else if(PRESET_KEYS.includes(k)){
       presets[k].enabled = true;
       presets[k].val = v;
     } else if(!RESERVED.includes(k.toLowerCase())){
