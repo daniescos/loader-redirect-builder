@@ -257,7 +257,7 @@
         <h2>Colar link de campanha <span class="badge">opcional</span></h2>
         <div class="field">
           <input type="text" id="pasteUrl" placeholder="cole aqui a URL de campanha original (https://...)">
-          <div class="hint" id="pasteHint">Atalho pra preencher type/path/parâmetros extras abaixo automaticamente. tokenPing, contractSession e campaign continuam manuais — a URL colada não traz essas informações.</div>
+          <div class="hint" id="pasteHint">Atalho pra preencher type/path/parâmetros extras abaixo automaticamente. campaign e o comportamento (seção 2) continuam manuais — a URL colada não traz essas informações (residencial já força tokenPing/contractSession).</div>
         </div>
       </div>
 
@@ -336,7 +336,7 @@
 
 <script>
 const TYPES = {
-  residencial:   { base: "https://minhaclaroresidencial.claro.com.br/", login: "Token Ping", inject: null, fixedParams: { origin: "minhanetapp" } },
+  residencial:   { base: "https://minhaclaroresidencial.claro.com.br/", login: "Token Ping", inject: null, fixedParams: { origin: "minhanetapp" }, forceTokens: true },
   flex:          { base: "https://flex.claro.com.br/",                  login: "Token AA/Flex", inject: "token", fixedParams: null },
   minha_claro:   { base: "https://minhaclaro.claro.com.br/",             login: "Token de autenticação", inject: null, fixedParams: null },
   claro_tv_mais: { base: "https://www.clarotvmais.com.br/",              login: "Token Ping", inject: "accessTokenId", fixedParams: null },
@@ -442,7 +442,7 @@ $("pasteUrl").addEventListener("input", e=>{
   const raw = e.target.value.trim();
   const hint = $("pasteHint");
   if(!raw){
-    hint.textContent = "Atalho pra preencher type/path/parâmetros extras abaixo automaticamente. tokenPing, contractSession e campaign continuam manuais — a URL colada não traz essas informações.";
+    hint.textContent = "Atalho pra preencher type/path/parâmetros extras abaixo automaticamente. campaign e o comportamento (seção 2) continuam manuais — a URL colada não traz essas informações (residencial já força tokenPing/contractSession).";
     return;
   }
   const parsed = parsePastedUrl(raw);
@@ -481,11 +481,25 @@ $("pasteUrl").addEventListener("input", e=>{
 const RESERVED = ["type","path","external","tokenaa","tokenping","contractsession","campaign","origin",
   "affiliateid","utm_source","utm_medium","utm_campaign","utm_id","utm_term"];
 
+let tokensForced = false;
+
 function build(){
   const type = typeSelect.value;
   const cfg = TYPES[type];
   let path = $("path").value.trim();
   const external = $("external").checked;
+
+  // residencial logado (external=false): doc exige tokenPing=true e contractSession=true — força e trava os toggles
+  const forceTokens = !!cfg.forceTokens && !external;
+  if(forceTokens){
+    $("tokenPing").checked = true;
+    $("contractSession").checked = true;
+  } else if(tokensForced){
+    $("tokenPing").checked = false;
+    $("contractSession").checked = false;
+  }
+  tokensForced = forceTokens;
+
   const tokenAA = $("tokenAA").checked;
   const tokenPing = $("tokenPing").checked;
   const contractSession = $("contractSession").checked;
@@ -514,8 +528,11 @@ function build(){
 
   // disable campos sem efeito nesse fluxo (external=true, ou fluxo fixo de campanha)
   ["tokenAA","tokenPing","contractSession"].forEach(id=>{
-    $(id).disabled = external || campaignOnlyFlow;
+    $(id).disabled = external || campaignOnlyFlow || (forceTokens && id !== "tokenAA");
   });
+  if(forceTokens){
+    alerts.push({type:"warn", msg:`type="residencial" exige tokenPing=true e contractSession=true (e origin=minhanetapp) no redirecionamento logado — aplicados automaticamente.`});
+  }
   $("external").disabled = campaignOnlyFlow;
   $("path").disabled = campaignOnlyFlow;
 

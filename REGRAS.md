@@ -1,6 +1,6 @@
 # Regras — LoaderScreenGenericRedirect
 
-Fonte: `MA-Redirecionamento Logado Para Sites Externos-200826-124435.pdf` (guia geral, mesma pasta) + `MA-Redirecionamento Logado via Campanhas Externas-030826-142938.pdf` (guia específico do fluxo de campanha externa pra Claro Store, mesma pasta). Este arquivo é o resumo em markdown usado como referência pra manter o `index.html` consistente.
+Fonte: `MA-Redirecionamento Logado Para Sites Externos-081026-124847.pdf` (guia geral, mesma pasta) + `MA-Redirecionamento Logado via Campanhas Externas-030826-142938.pdf` (guia específico do fluxo de campanha externa pra Claro Store, mesma pasta). Este arquivo é o resumo em markdown usado como referência pra manter o `index.html` consistente.
 
 ## O que é
 
@@ -44,7 +44,7 @@ Pra redirecionamento logado pro site residencial funcionar, é **obrigatório** 
 &origin=minhanetapp&tokenPing=true&contractSession=true
 ```
 
-Na ferramenta (`index.html`), `origin=minhanetapp` é injetado automaticamente (fixo, não editável) sempre que `type=residencial` e `external=false` — não precisa (e não deve) ser digitado manualmente. `tokenPing`/`contractSession` continuam manuais (toggles da seção 2), tem que ligar os dois.
+Na ferramenta (`index.html`), sempre que `type=residencial` e `external=false`, `origin=minhanetapp` é injetado (fixo, não editável) e `tokenPing=true` + `contractSession=true` são forçados (toggles da seção 2 ligados e travados) — não precisa (e não deve) mexer manualmente. Ao trocar de `type` ou ligar `external`, os toggles voltam pro padrão (`false`).
 
 ## Valores válidos de `type`
 
@@ -68,7 +68,7 @@ Exemplos: `affiliateId`, `redirect-feature`, `redirect`/`action`, `utm_*`, `q`.
 
 Na UI (`index.html`), os seis mais usados (`affiliateId`, `utm_source`, `utm_medium`, `utm_campaign`, `utm_id`, `utm_term`) aparecem como campos fixos com toggle na seção 3 — liga só o que for preencher. Qualquer outro nome de parâmetro vai em "+ adicionar parâmetro".
 
-Campo "colar link de campanha" (topo da página): cola a URL de campanha original e a ferramenta detecta `type` (pelo domínio), `path` e distribui os parâmetros da query string automaticamente entre os presets acima e "+ adicionar parâmetro" — é só um atalho de preenchimento, os campos continuam 100% editáveis manualmente depois. Não traz `tokenPing`/`contractSession`/`campaign` (não fazem parte da URL original, são comportamento do app) — esses continuam manuais mesmo depois de colar.
+Campo "colar link de campanha" (topo da página): cola a URL de campanha original e a ferramenta detecta `type` (pelo domínio), `path` e distribui os parâmetros da query string automaticamente entre os presets acima e "+ adicionar parâmetro" — é só um atalho de preenchimento, os campos continuam 100% editáveis manualmente depois. Não traz `campaign` nem o comportamento da seção 2 (`external`/`tokenAA`/`tokenPing`/`contractSession` não fazem parte da URL original, são comportamento do app) — esses continuam manuais mesmo depois de colar, exceto `tokenPing`/`contractSession` no `residencial` (forçados `true`, ver regra acima).
 
 ## Regra de concatenação de `path`
 
