@@ -44,7 +44,7 @@ Pra redirecionamento logado pro site residencial funcionar, é **obrigatório** 
 &origin=minhanetapp&tokenPing=true&contractSession=true
 ```
 
-Na ferramenta (`index.html`), sempre que `type=residencial` e `external=false`, `origin=minhanetapp` é injetado (fixo, não editável) e `tokenPing=true` + `contractSession=true` são forçados (toggles da seção 2 ligados e travados) — não precisa (e não deve) mexer manualmente. Ao trocar de `type` ou ligar `external`, os toggles voltam pro padrão (`false`).
+Na ferramenta (`index.html`), sempre que `type=residencial` e `external=false`, `origin=minhanetapp` é injetado (fixo, não editável) e `tokenPing=true` + `contractSession=false` são forçados (toggles da seção 2 travados). **Divergência consciente do guia:** o PDF manda `contractSession=true`, mas o time confirmou (09/10/2026) que com `tokenPing=true` o `contractSession` deve ser `false` — vale o do time até o guia ser corrigido. Não precisa (e não deve) mexer manualmente. Ao trocar de `type` ou ligar `external`, os toggles voltam pro padrão (`false`).
 
 ## Valores válidos de `type`
 

@@ -489,11 +489,12 @@ function build(){
   let path = $("path").value.trim();
   const external = $("external").checked;
 
-  // residencial logado (external=false): doc exige tokenPing=true e contractSession=true — força e trava os toggles
+  // residencial logado (external=false): regra do time = tokenPing=true e contractSession=false — força e trava os toggles
+  // (o guia MA diz contractSession=true, mas foi confirmado que com tokenPing=true deve ser false)
   const forceTokens = !!cfg.forceTokens && !external;
   if(forceTokens){
     $("tokenPing").checked = true;
-    $("contractSession").checked = true;
+    $("contractSession").checked = false;
   } else if(tokensForced){
     $("tokenPing").checked = false;
     $("contractSession").checked = false;
@@ -531,7 +532,7 @@ function build(){
     $(id).disabled = external || campaignOnlyFlow || (forceTokens && id !== "tokenAA");
   });
   if(forceTokens){
-    alerts.push({type:"warn", msg:`type="residencial" exige tokenPing=true e contractSession=true (e origin=minhanetapp) no redirecionamento logado — aplicados automaticamente.`});
+    alerts.push({type:"warn", msg:`type="residencial" exige tokenPing=true, contractSession=false e origin=minhanetapp no redirecionamento logado — aplicados automaticamente.`});
   }
   $("external").disabled = campaignOnlyFlow;
   $("path").disabled = campaignOnlyFlow;
